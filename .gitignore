@@ -1,0 +1,13 @@
+
+hue_scaling.m~
+img/*
+*~
+stats/*
+*analyzed_cones.mat
+dat/20076R/intensity/delivery_analysis/*
+dat/*/intensity/session_plots/*
+dat/*/analyzed_cones*.mat
+dat/*/intensity/delivery_analysis/*
+*.~lock*
+.~*
+*#
