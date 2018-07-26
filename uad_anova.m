@@ -70,25 +70,39 @@ function uad_anova(subject, save_plots)
         end
     end
     
-    [~, ~, stat] = anova1(by_data, coneID);
-
+    savename = fullfile('img', 'intensity', subject);
+    files.check_for_dir(savename);
+    % analyze blue-yellow dimension
+    [~, anovatab, stat] = anova1(by_data, coneID);
+    if save_plots        
+        writetable(table(anovatab), fullfile(savename, 'anova_Ftest_BY.csv'));
+    end    
+    % posthoc comparisons
     yb_compare = multcompare(stat, 0.05);
-    plot_posthoc(ncones, yb_compare)
+    fig = plot_posthoc(ncones, yb_compare);
+    if save_plots
+        plots.save_fig(fullfile(savename, 'anova_multcomp_BY'), fig);
+    end    
     
-    [~, ~, stat] = anova1(gr_data, coneID);        
+    % now analyze green-red dimension
+    [~, anovatab, stat] = anova1(gr_data, coneID);  
+    if save_plots        
+        writetable(table(anovatab), fullfile(savename, 'anova_Ftest_RG.csv'));
+    end    
+    % posthoc tests    
     gr_compare = multcompare(stat, 0.05);
+    fig = plot_posthoc(ncones, gr_compare);
+    if save_plots
+        plots.save_fig(fullfile(savename, 'anova_multcomp_RG'), fig);
+    end    
 
-    plot_posthoc(ncones, gr_compare)
-    
-    function plot_posthoc(ncones, comparison_mat)
+    function fig = plot_posthoc(ncones, comparison_mat)
         
         comp_mat = zeros(ncones, ncones);
         for idx = 1:length(comparison_mat)
             x = comparison_mat(idx, 1);
             y = comparison_mat(idx, 2);
 
-            %multipleP = gr_compare(idx, 6) * yb_compare(idx, 6);
-            %p = multipleP * (1 - log(multipleP));
             p_val = comparison_mat(idx, 6);
             
             comp_mat(x, y) = p_val;
@@ -100,95 +114,12 @@ function uad_anova(subject, save_plots)
             comp_mat(idx, idx) = 1;
         end
 
-        figure;
+        fig = figure;
         imagesc(log10(comp_mat), [-2.5 0]);
         colorbar();
         %colormap('gray')
-        set(gca,'dataAspectRatio', [1 1 1])
+        set(gca,'dataAspectRatio', [1 1 1])            
         
     end
 
 end
-%     
-%     
-%     % stress, sstress, metricstress, metricsstress, sammon, strain
-%     MDS = mdscale(comp_mat, 2, 'criterion', 'sstress', 'options', ...
-%         statset('maxiter', 5000));
-% 
-%     %gmm = fitgmdist(MDS, 2);
-%     %group = cluster(gmm, MDS) + 1;
-%     
-%     %model = fitcsvm(MDS, conetypes_list);
-%     %[group, ~] = predict(model, MDS);
-%     
-%     group = kmeans(MDS, 2, 'options', ...
-%         statset('maxiter', 5000));
-%         
-%     if sum(group(1:10) == 1) > 6
-%         group = group + 1;
-%     else
-%         group(group == 1) = 3;
-%     end
-%     
-%     fig = figure;
-%     hold on;
-%     colors = {'b', 'g', 'r'};
-%     for cID = 1:ncones
-%         if strcmp(subject, '20092L')
-%             plot(MDS(cID, 1), MDS(cID, 2), [colors{group(cID)} 'o'], ...
-%                 'markersize', 5.5, 'markerfacecolor', colors{group(cID)}, ...
-%                 'linewidth', 1.25);     
-%         else
-%             
-%             plot(MDS(cID, 1), MDS(cID, 2), [colors{group(cID)} 'o'], ...
-%                 'markersize', 5.5, 'markerfacecolor', colors{conetypes_list(cID)}, ...
-%                 'linewidth', 1.25);         
-%         end
-%     end    
-%     
-%     plots.nice_axes('dimension 1', 'dimension 2');
-% 
-%     if ~strcmp(subject, '20092L')
-%         analyze_prediction(group, conetypes_list);
-%     else
-%         nLcones = sum(group == 3);
-%         nMcones = sum(group == 2);
-%         disp([num2str(nLcones) ' L-cones, ' num2str(nMcones) ' M-cones']);
-%     end
-%     
-%     if save_plots
-%         plots.save_fig(fullfile('img', 'intensity', subject,...
-%             'mdscaling_results'), fig)
-%     end
-% 
-%     % now plot the cone types on the mosaic
-%     fig = figure;
-%     axis equal;
-%     axis off;
-%     box off;
-%     hold on;
-% 
-%     for c = 1:ncones    
-%         if ~strcmp(subject, '20092L')    
-%             plot(xy_locations(c, 1), xy_locations(c, 2),...
-%                 [colors{group(c)} 'o'], ...
-%                     'markersize', 5.5, 'markerfacecolor', colors{conetypes_list(c)}, ...
-%                     'linewidth', 1.25)
-%         else
-%             plot(xy_locations(c, 1), xy_locations(c, 2),...
-%                 [colors{group(c)} 'o'], ...
-%                     'markersize', 5.5, 'markerfacecolor', [0.5 0.5 0.5], ...
-%                     'linewidth', 1.25)
-%         end
-%             %[colors{kmean_group(c)} '.'], 'markersize', 12);        
-%     end   
-% 
-%     minxy = [min(xy_locations(:, 1)), min(xy_locations(:, 2))];
-% 
-%     % scale bar.
-%     add_scale_bar(subject, max(xy_locations, [], 1));
-% 
-%     if save_plots
-%         plots.save_fig(fullfile('img', 'intensity', subject,...
-%             'predict_mosaic_t_score'), fig)
-%     end    
