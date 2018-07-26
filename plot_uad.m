@@ -7,6 +7,7 @@ function plot_uad(subject, save_plots)
     if nargin < 1
         subject = '20076R';
     end
+    alpha = 0.01;
     
     % get the data
     cones = load_data(subject, 1);
@@ -105,7 +106,7 @@ function plot_uad(subject, save_plots)
             h.hMain.MarkerFaceColor = 'w';
             h.hMain.MarkerSize = 3.5;            
             
-            if pBY < 0.01 || pRG < 0.01
+            if pBY < alpha || pRG < alpha
                 color = colors{cone.type + 1};
                 plot(meanBY, meanGR, [color '.'], 'markersize', 10)
             end
@@ -170,16 +171,16 @@ function plot_uad(subject, save_plots)
     end
     %stats_data = array.remove_zero_rows(stats_data);
     
-    % find p-vales < 0.01
-    n_sig_by = sum(stats_data(:, 1) < 0.01);
+    % find p-vales < alpha    
+    n_sig_by = sum(stats_data(:, 1) < alpha);
     disp(['by: ' num2str(n_sig_by) ' / ' num2str(length(stats_data(:, 1))) ...
         ' significantly different from 0 mean'])
-    n_sig_rg = sum(stats_data(:, 3) < 0.01);
+    n_sig_rg = sum(stats_data(:, 3) < alpha);
     disp(['rg: ' num2str(n_sig_rg) ' / ' num2str(length(stats_data(:, 3))) ...
         ' significantly different from 0 mean'])    
 
-    n_sig = sum(stats_data(:, 1) < 0.01 | stats_data(:, 3) < 0.01);
-    disp(['rg: ' num2str(n_sig) ' / ' num2str(length(stats_data(:, 3))) ...
+    n_sig = sum(stats_data(:, 1) < alpha | stats_data(:, 3) < alpha);
+    disp(['rg or by: ' num2str(n_sig) ' / ' num2str(length(stats_data(:, 3))) ...
         ' significantly different from 0 mean'])
     
     if save_plots
