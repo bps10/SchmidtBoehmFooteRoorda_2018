@@ -23,7 +23,7 @@ function uad_anova(subject, save_plots)
     for c = 1:length(cones)
         cone = cones{c};
         if ~isempty(cone)
-            if strcmp(subject, '20092L')
+            if strcmp(subject, '20092L') && cone.type ~= 1 % no S-cones!
                 LM_ordered_index = [LM_ordered_index; cone.ID];
             else
                 if cone.type == 2

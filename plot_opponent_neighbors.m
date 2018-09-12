@@ -6,45 +6,24 @@ end
 if nargin < 2
     save_plots = 0;
 end
-fontsize = 12;
+fontsize = 10;
 
-cones = load_data(subject, 1);
-tested_cones = array.find_non_empty_cells(cones);
-ncones = length(tested_cones);
-
-summary = zeros(ncones, 14);
-intensities = unique(cones{tested_cones(1)}.stim_intensity);
-for c = 1:ncones
-    cone = cones{tested_cones(c)};
-    % don't use S-cones
-    if cone.type ~= 1
-        hue_angles = compute_hue_angle(cone, -1, -1);
-        summary(c, 1) = cone.type;
-        summary(c, 2) = cone.nopponent_neighbors;
-        summary(c, 6) = mean(cone.brightness_rating);
-        summary(c, 10) = mean(cone.saturation_noNS);
-        summary(c, 14) = mean(hue_angles);
-        
-        for intens = 2:4
-            intensity = intensities(intens);
-            summary(c, 1 + intens) = mean(cone.brightness_rating(...
-                cone.stim_intensity_noNS == intensity));
-            summary(c, 5 + intens) = mean(cone.saturation_noNS(...
-                cone.stim_intensity_noNS == intensity));
-            summary(c, 9 + intens) = mean(compute_hue_angle(cone, ...
-                intensity, -1));                
-        end
-    end
+if strcmp(subject, 'all')
+    [summary1, ~] = get_summary('20053R');
+    [summary2, intensities] = get_summary('20076R');
+    summary = [summary1; summary2];
+else
+    [summary, intensities] = get_summary(subject);
 end
-summary = array.remove_zero_rows(summary);
 
 l_cones = summary(:, 1) == 3;
 m_cones = summary(:, 1) == 2;
 
 % summary figure for all intensities: hue, saturation and brightness
-fig0 = figure('Position', [20 20 300 750]);
+fig0 = figure('Position', [20 20 400 750]);
 metric = {'brightness', 'saturation', 'hue angle'};
 c = 1;
+rng(1)
 for index = [6, 10, 14]
     subplot(3, 1, c);
     hold on;
@@ -52,10 +31,10 @@ for index = [6, 10, 14]
     summary_L = summary(l_cones, :);
     summary_M = summary(m_cones, :);
 
-    plot(summary_L(:, 2), summary_L(:, index), 'ro', ...
-        'markerfacecolor', 'r')
-    plot(summary_M(:, 2), summary_M(:, index), 'go', ...
-        'markerfacecolor', 'g')
+    plot(summary_L(:, 2) + (-0.15 + 0.3 .* rand([length(summary_L), 1])), ...
+        summary_L(:, index), 'ko', 'markerfacecolor', 'r', 'markersize', 4.5)
+    plot(summary_M(:, 2) + (-0.15 + 0.3 .* rand([length(summary_M), 1])),...
+        summary_M(:, index), 'ko', 'markerfacecolor', 'g', 'markersize', 4.5)
     
     if strcmp(metric{c}, 'saturation')        
         ylim([0 1]);
@@ -302,4 +281,39 @@ if save_plots
     plots.save_fig(fullfile('img', 'intensity', subject, ...
         'opponent_vs_hue_angle_all_int'), meanfig2);        
     
+end
+
+
+    function [summary, intensities] = get_summary(subject)
+
+        cones = load_data(subject, 1);
+        tested_cones = array.find_non_empty_cells(cones);
+        ncones = length(tested_cones);
+
+        summary = zeros(ncones, 14);
+        intensities = unique(cones{tested_cones(1)}.stim_intensity);
+        for c = 1:ncones
+            cone = cones{tested_cones(c)};
+            % don't use S-cones
+            if cone.type ~= 1
+                hue_angles = compute_hue_angle(cone, -1, -1);
+                summary(c, 1) = cone.type;
+                summary(c, 2) = cone.nopponent_neighbors;
+                summary(c, 6) = mean(cone.brightness_rating);
+                summary(c, 10) = mean(cone.saturation_noNS);
+                summary(c, 14) = mean(hue_angles);
+
+                for intens = 2:4
+                    intensity = intensities(intens);
+                    summary(c, 1 + intens) = mean(cone.brightness_rating(...
+                        cone.stim_intensity_noNS == intensity));
+                    summary(c, 5 + intens) = mean(cone.saturation_noNS(...
+                        cone.stim_intensity_noNS == intensity));
+                    summary(c, 9 + intens) = mean(compute_hue_angle(cone, ...
+                        intensity, -1));                
+                end
+            end
+        end
+        summary = array.remove_zero_rows(summary);
+    end
 end
